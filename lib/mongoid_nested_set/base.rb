@@ -47,7 +47,7 @@ module Mongoid::Acts::NestedSet
         field :depth, :type => Integer
 
         has_many   :children, :class_name => self.name, :foreign_key => parent_field_name, :inverse_of => :parent, :order => left_field_name.to_sym.asc
-        belongs_to :parent,   :class_name => self.name, :foreign_key => parent_field_name
+        belongs_to :parent,   :class_name => self.name, :foreign_key => parent_field_name, optional: true
 
         attr_accessor :skip_before_destroy
 

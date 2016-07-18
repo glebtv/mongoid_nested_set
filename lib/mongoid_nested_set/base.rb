@@ -22,12 +22,12 @@ module Mongoid::Acts::NestedSet
     # acts_as_nested_set models
     def acts_as_nested_set(options = {})
       options = {
-        :parent_field => 'parent_id',
-        :left_field => 'lft',
-        :right_field => 'rgt',
+        :parent_field         => 'parent_id',
+        :left_field           => 'lft',
+        :right_field          => 'rgt',
         :outline_number_field => nil,
-        :dependent => :delete_all, # or :destroy
-        :klass => self,
+        :dependent            => :delete_all, # or :destroy
+        :klass                => self,
       }.merge(options)
 
       if options[:scope].is_a?(Symbol) && options[:scope].to_s !~ /_id$/
@@ -41,13 +41,18 @@ module Mongoid::Acts::NestedSet
         include Document
         include OutlineNumber if outline_number_field_name
 
-        field left_field_name, :type => Integer
+        field left_field_name,  :type => Integer
         field right_field_name, :type => Integer
         field outline_number_field_name, :type => String if outline_number_field_name
         field :depth, :type => Integer
 
         has_many   :children, :class_name => self.name, :foreign_key => parent_field_name, :inverse_of => :parent, :order => left_field_name.to_sym.asc
-        belongs_to :parent,   :class_name => self.name, :foreign_key => parent_field_name, optional: true
+
+        if Mongoid::VERSION >= '5'
+          belongs_to :parent,   :class_name => self.name, :foreign_key => parent_field_name, optional: true
+        else
+          belongs_to :parent,   :class_name => self.name, :foreign_key => parent_field_name
+        end
 
         attr_accessor :skip_before_destroy
 
@@ -68,14 +73,19 @@ module Mongoid::Acts::NestedSet
         end
 
         scope :roots, lambda {
-          where(parent_field_name => nil).asc(left_field_name)
+          asc(left_field_name).where(parent_field_name => nil)
         }
         scope :leaves, lambda {
-          where("this.#{quoted_right_field_name} - this.#{quoted_left_field_name} == 1").asc(left_field_name)
+          asc(left_field_name).where("this.#{quoted_right_field_name} - this.#{quoted_left_field_name} == 1")
         }
         scope :with_depth, lambda { |level|
-          where(:depth => level).asc(left_field_name)
+          asc(left_field_name).where(:depth => level)
         }
+
+        index({ left_field_name   =>  1 },  { background: true  })
+        index({ right_field_name  =>  1 },  { background: true  })
+        index({ parent_field_name =>  1 },  { background: true  })
+        index({ depth             =>  1 },  { background: true  })
 
       end
     end

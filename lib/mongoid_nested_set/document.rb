@@ -142,13 +142,13 @@ module Mongoid::Acts::NestedSet
 
       # Value of the left field
       def left
-        self[left_field_name]
+        self[left_field_name] || 0
       end
 
 
       # Value of the right field
       def right
-        self[right_field_name]
+        self[right_field_name] || 0
       end
 
 

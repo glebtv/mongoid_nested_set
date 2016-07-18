@@ -85,7 +85,7 @@ module Mongoid::Acts::NestedSet
         index({ left_field_name   =>  1 },  { background: true  })
         index({ right_field_name  =>  1 },  { background: true  })
         index({ parent_field_name =>  1 },  { background: true  })
-        index({ depth             =>  1 },  { background: true  })
+        index({ :depth            =>  1 },  { background: true  })
 
       end
     end
